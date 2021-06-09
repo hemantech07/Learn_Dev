@@ -2,34 +2,45 @@ let fs = require('fs');
 let extensions = require('./extensions');
 
 let mixFolderPath = './mixFolder';
-
 let contents = fs.readdirSync(mixFolderPath);
 
+let flag = false;
 for (let i in contents) {
-    let ext = contents[i].split('.')[1];
-    
-    if (ext==undefined) {
-        // If Folder
-        let folder = contents[i];
-        let folderPath = mixFolderPath+'/'+folder;
-        let files = fs.readdirSync(folderPath);
+    let folder = contents[i];
+    let folderPath = mixFolderPath+'/'+folder;
 
-        // Loop through all files in folder
-        for (let idx in  files) {
-            sortFile(files[idx], folderPath);
-        }
-        
-        // Delete empty folder
-        if (files.length==0) {
-            fs.rmdirSync(folderPath);
-        }
-    } else {
-        // If File
-        sortFile(contents[i]);
+    // If folder exist
+    if (fs.lstatSync(folderPath).isDirectory()) {
+        // Unsort -> Copy all data to MixFolder and delete folder
+        unsortFolder(folderPath);
+    }
+}
+flag = true;
+// Flag is set true when all files are transferred to the root folder.
+// Then Sort all files accordingly
+if (flag) {
+    for (let i in contents) {
+        let file = contents[i];
+        sortFile(file);
     }
 }
 
-function sortFile(file, fileFolderPath) {
+function unsortFolder(folderPath) {
+        // Copy
+        let files = fs.readdirSync(folderPath);
+        for (let i in files) {
+            let sourcePath = folderPath+'/'+files[i];
+            let destPath = mixFolderPath+'/'+files[i];
+            fs.copyFileSync(sourcePath, destPath);
+            // Deleting copied File
+            fs.unlinkSync(sourcePath);
+        }
+
+        // Delete Empty directory
+        fs.rmdirSync(folderPath);
+}
+
+function sortFile(file) {
     let ext = file.split('.')[1];
     let folderName = getFolderName(ext);
 
@@ -45,8 +56,6 @@ function sortFile(file, fileFolderPath) {
 
     // Copy
     let sourceFilePath = mixFolderPath+'/'+file;
-    if (fileFolderPath!=undefined)
-        sourceFilePath = fileFolderPath+'/'+file;
     let destFilePath = folderPath+'/'+file;
     fs.copyFileSync(sourceFilePath, destFilePath);
 
