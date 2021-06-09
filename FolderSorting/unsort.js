@@ -8,8 +8,8 @@ let contents = fs.readdirSync(testFolderPath);
 for (let i=0; i<contents.length; i++) {
     let folder = contents[i];
     let folderPath = testFolderPath+'/'+folder;
-    // console.log(folderPath);
-
+    
+    // Proceed only if path is of a directory, not file
     if (fs.lstatSync(folderPath).isDirectory()) {
         // If Folder Exist
         // Copy all data to TestFolder
