@@ -18,8 +18,8 @@ for (let i in contents) {
         for (let idx in  files) {
             sortFile(files[idx], folderPath);
         }
-        
-        // Delete empty folder
+
+        // Delete empty folder asynchronously. ***PROBLEM***
         if (files.length==0) {
             fs.rmdirSync(folderPath);
         }
