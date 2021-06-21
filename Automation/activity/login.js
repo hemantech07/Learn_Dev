@@ -38,23 +38,16 @@ browserOpenPromise.then(function(browserInstance) {
 })
 .then(function() {
     // This waits for the selector to load in DOM, default max - 30 sec, and when visibile is true
-    let waitPromise = tab.waitForSelector('#base-card-1-link', {visible: true});
-    return waitPromise;
-})
-.then(function() {
     // When selector is loaded, then we can use that selector.
     // If we dont wait for the selector to load, at the time we reach this function, selector is not loaded. So it will show error.
-    let ipKitPromise = tab.click('#base-card-1-link');
-    return ipKitPromise;
+    // This is handled by creating promisified funcl
+    let waitAndClickPromise = waitAndClick('#base-card-1-link');
+    return waitAndClickPromise;
 })
 .then(function() {
     // Navigation happened - again wait for selector
-    let waitPromise = tab.waitForSelector('#base-card-7-link', {visible: true});
-    return waitPromise;
-})
-.then(function() {
-    let challengePromise = tab.click('#base-card-7-link');
-    return challengePromise;
+    let waitAndClickPromise = waitAndClick('#base-card-7-link');
+    return waitAndClickPromise;
 })
 .then(function() {
     let waitPromise = tab.waitForSelector('.js-track-click.challenge-list-item');
@@ -79,8 +72,43 @@ browserOpenPromise.then(function(browserInstance) {
     return combinedPromise;
 })
 .then(function(allQuesLinks) {
-    console.log(allQuesLinks);
+    // console.log(allQuesLinks);
+    let solvedQuestPromise = solveQuest(allQuesLinks[0]);
+    return solvedQuestPromise;
+})
+.then(function() {
+    console.log("Solved 1st Question");
 })
 .catch(function(err) {
     console.log("ERROR");
 })
+
+function waitAndClick(selector) {
+    return new Promise(function(scb, fcb) {
+        let waitPromise = tab.waitForSelector(selector, {visible: true});
+        waitPromise
+        .then(function() {
+            let clickPromise = tab.click(selector);
+            return clickPromise;
+        })
+        .then(function() {
+            scb();
+        })
+        .catch(function() {
+            fcb();
+        })
+    })
+}
+
+function solveQuest(questLink) {
+    return new Promise(function(scb, fcb) {
+        let completeLink = 'https://www.hackerrank.com'+questLink;
+        let gotoPromise = tab.goto(completeLink);
+        gotoPromise.then(function() {
+            scb();
+        })
+        .catch(function() {
+            fcb();
+        })
+    })
+}
